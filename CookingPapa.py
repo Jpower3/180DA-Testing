@@ -2,6 +2,8 @@ from email import message
 from pynput import keyboard
 import time as t 
 import paho.mqtt.client as mqtt
+from threading import Thread
+import sys
 ##CONST GLOBALS
 
 GOAL_STOVE = 1
@@ -186,6 +188,7 @@ def on_press(key):
 #GAME STARTS HERE
 #GAME STARTS HERE
 #
+
 client = mqtt.Client()
 # add additional client options (security, certifications, etc.)
 # many default options should be good to start off.
@@ -197,60 +200,70 @@ client.on_message = on_message
 client.connect_async("test.mosquitto.org")
 # 3. call one of the loop*() functions to maintain network traffic flow with the broker.
 client.loop_start()
-
-#wait for player selection
-while(flag_player==0):
-    pass
-t.sleep(1)
-print('Welcome to Cooking Papa! Waiting for your opponent')
-while(flag_received == 0):
-    client.publish(str(flag_opponent)+'Team8','1gamestart',qos=1)
-    t.sleep(1)
-#publish again in case of second to enter lobby
-print('Your opponent is in the lobby')
-client.publish(str(flag_opponent)+'Team8','1gamestart',qos=1)
-t.sleep(2)
-txt = input('Type Ready to begin: ')
-if txt.lower() == 'ready':
-    client.publish(str(flag_opponent)+'Team8', '2I am Ready',qos=1)
-    print('Waiting for your opponent to be ready!')
-    while(flag_received!=2):
+def timer():
+    for i in range (108):
+        t.sleep(1)
+    sys.exit()
+def main():
+    global score
+    #wait for player selection
+    while(flag_player==0):
         pass
-print("Let's Begin")
-start_game = t.time()    
-while(in_cooking != 2):
-    print('Press left to go to stove, Press right to go to chopping board')
-    with keyboard.Listener(on_press=on_press) as listener:
-        listener.join()
-    in_cooking = 1
-    if position == STOVE:
-        txt = input('Type spoon to start stirring: ')
-        if txt == 'spoon':
-            print('Press up right down left chef')
-            while(spins<4):
-                with keyboard.Listener(on_press=on_press)as listener:
-                    listener.join()
-            spins = 0
-            total_stove = total_stove + 1
-            print("Total stove times remaining: "+ str(GOAL_STOVE-total_stove))
-    elif position == CUTTING:
-        txt = input('Type knife to start chopping: ')
-        if txt == 'knife':
-            print('Press up and down chef')
-            while(chops<6):
-                with keyboard.Listener(on_press=on_press)as listener:
-                    listener.join()
-            chops = 0
-            total_cutting = total_cutting + 1
-            print("Total cutting times remaining: "+ str(GOAL_CUTTING-total_cutting))
-    in_cooking = 0
-    if total_cutting >= GOAL_CUTTING and total_stove >= GOAL_STOVE:
-        in_cooking = 2
-#ending conditions for the game
-end_game = t.time()
-score = end_game-start_game
-print('Your time was: ' + str(score))
-client.publish(str(flag_score)+str(flag_opponent)+'Team8', float(score), qos=1)
-print("waiting for opponent's time...")
-while True:
-    pass
+    t.sleep(1)
+    print('Welcome to Cooking Papa! Waiting for your opponent')
+    while(flag_received == 0):
+        client.publish(str(flag_opponent)+'Team8','1gamestart',qos=1)
+        t.sleep(1)
+    #publish again in case of second to enter lobby
+    print('Your opponent is in the lobby')
+    client.publish(str(flag_opponent)+'Team8','1gamestart',qos=1)
+    t.sleep(2)
+    txt = input('Type Ready to begin: ')
+    if txt.lower() == 'ready':
+        client.publish(str(flag_opponent)+'Team8', '2I am Ready',qos=1)
+        print('Waiting for your opponent to be ready!')
+        while(flag_received!=2):
+            pass
+    print("Let's Begin")
+    start_game = t.time()    
+    while(in_cooking != 2):
+        print('Press left to go to stove, Press right to go to chopping board')
+        with keyboard.Listener(on_press=on_press) as listener:
+            listener.join()
+        in_cooking = 1
+        if position == STOVE:
+            txt = input('Type spoon to start stirring: ')
+            if txt == 'spoon':
+                print('Press up right down left chef')
+                while(spins<4):
+                    with keyboard.Listener(on_press=on_press)as listener:
+                        listener.join()
+                spins = 0
+                total_stove = total_stove + 1
+                print("Total stove times remaining: "+ str(GOAL_STOVE-total_stove))
+        elif position == CUTTING:
+            txt = input('Type knife to start chopping: ')
+            if txt == 'knife':
+                print('Press up and down chef')
+                while(chops<6):
+                    with keyboard.Listener(on_press=on_press)as listener:
+                        listener.join()
+                chops = 0
+                total_cutting = total_cutting + 1
+                print("Total cutting times remaining: "+ str(GOAL_CUTTING-total_cutting))
+        in_cooking = 0
+        if total_cutting >= GOAL_CUTTING and total_stove >= GOAL_STOVE:
+            in_cooking = 2
+    #ending conditions for the game
+    end_game = t.time()
+    score = end_game-start_game
+    print('Your time was: ' + str(score))
+    client.publish(str(flag_score)+str(flag_opponent)+'Team8', float(score), qos=1)
+    print("waiting for opponent's time...")
+    while True:
+        pass
+
+t1 = Thread(target = main)
+t2 = Thread(target = timer)
+t1.start()
+t2.start()
