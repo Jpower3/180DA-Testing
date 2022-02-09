@@ -240,21 +240,20 @@ def main():
     while(flag_player==0):
         pass
     t.sleep(1)
-    print('Welcome to Cooking Papa! Waiting for your opponent')
-    while(flag_received == 0):
-        client.publish(str(flag_opponent)+'Team8','1gamestart',qos=1)
-        t.sleep(1)
+    print('Welcome to Cooking Papa! Good Luck!')
     #publish again in case of second to enter lobby
-    print('Your opponent is in the lobby')
-    client.publish(str(flag_opponent)+'Team8','1gamestart',qos=1)
     t.sleep(2)
     txt = input('Type Ready to begin: \n')
-    if txt.lower() == 'ready':
-        client.publish(str(flag_opponent)+'Team8', '2I am Ready',qos=1)
-        print('Waiting for your opponent to be ready!')
-        while(flag_received!=2):
-            pass
-    print("Let's Begin")
+    while txt.lower() != 'ready':
+        txt = input('Type Ready to begin: \n')
+    print("Let's Begin, Timer starts in...")
+    print("3")
+    t.sleep(1)
+    print("2")
+    t.sleep(1)
+    print("1")
+    t.sleep(1)
+    print("GO!")
     start_game = t.time()    
     while(in_cooking != 2):
         print('Press left to go to stove, Press right to go to chopping board')
