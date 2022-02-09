@@ -300,5 +300,4 @@ def main():
     print("waiting for opponent's time...")
     while True:
         pass
-t1 = threading.Thread(target = main)
-t1.start()
+main()
